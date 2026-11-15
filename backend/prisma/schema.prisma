@@ -1,0 +1,194 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DisasterStatus {
+  ACTIVE
+  CONTAINED
+  CLOSED
+}
+
+enum ShelterPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum AllocationStatus {
+  OPTIMAL
+  FEASIBLE
+  INFEASIBLE
+  UNKNOWN
+}
+
+model Disaster {
+  id          String         @id @default(uuid())
+  name        String
+  disasterType String
+  description String?
+  location    String
+  status      DisasterStatus @default(ACTIVE)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  shelters    Shelter[]
+  warehouses  Warehouse[]
+  roadNodes   RoadNode[]
+  roadEdges   RoadEdge[]
+  allocationRuns AllocationRun[]
+}
+
+model Shelter {
+  id                  String           @id @default(uuid())
+  disasterId          String
+  name                String
+  latitude            Float
+  longitude           Float
+  population          Int              @default(0)
+  capacity            Int
+  priority            ShelterPriority  @default(MEDIUM)
+  isActive            Boolean          @default(true)
+  createdAt           DateTime         @default(now())
+
+  disaster            Disaster         @relation(fields: [disasterId], references: [id])
+  demands             Demand[]
+  allocationLines     AllocationLine[]
+
+  @@index([disasterId])
+}
+
+model Warehouse {
+  id              String      @id @default(uuid())
+  disasterId      String
+  name            String
+  latitude        Float
+  longitude       Float
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+
+  disaster        Disaster    @relation(fields: [disasterId], references: [id])
+  inventory       Inventory[]
+  allocationLines AllocationLine[]
+
+  @@index([disasterId])
+}
+
+model Resource {
+  id              String      @id @default(uuid())
+  name            String      @unique
+  unit            String
+  weightPerUnit   Float       @default(1)
+  isActive        Boolean     @default(true)
+
+  inventory       Inventory[]
+  demands         Demand[]
+  allocationLines AllocationLine[]
+}
+
+model Inventory {
+  id                String    @id @default(uuid())
+  warehouseId       String
+  resourceId        String
+  availableQuantity Int       @default(0)
+  updatedAt         DateTime  @updatedAt
+
+  warehouse         Warehouse @relation(fields: [warehouseId], references: [id])
+  resource          Resource  @relation(fields: [resourceId], references: [id])
+
+  @@unique([warehouseId, resourceId])
+}
+
+model Demand {
+  id                String   @id @default(uuid())
+  shelterId         String
+  resourceId        String
+  requiredQuantity  Int
+  currentStock      Int      @default(0)
+  priority          ShelterPriority @default(MEDIUM)
+  isVerified        Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
+
+  shelter           Shelter  @relation(fields: [shelterId], references: [id])
+  resource          Resource @relation(fields: [resourceId], references: [id])
+
+  @@unique([shelterId, resourceId])
+}
+
+model RoadNode {
+  id          String    @id @default(uuid())
+  disasterId  String
+  name        String
+  latitude    Float
+  longitude   Float
+
+  disaster    Disaster  @relation(fields: [disasterId], references: [id])
+  outgoing    RoadEdge[] @relation("RoadSource")
+  incoming    RoadEdge[] @relation("RoadDestination")
+
+  @@index([disasterId])
+}
+
+model RoadEdge {
+  id              String   @id @default(uuid())
+  disasterId      String
+  sourceNodeId    String
+  destinationNodeId String
+  distanceKm      Float
+  travelTimeMin   Float
+  isAccessible    Boolean  @default(true)
+
+  disaster        Disaster @relation(fields: [disasterId], references: [id])
+  source          RoadNode @relation("RoadSource", fields: [sourceNodeId], references: [id])
+  destination     RoadNode @relation("RoadDestination", fields: [destinationNodeId], references: [id])
+
+  @@unique([sourceNodeId, destinationNodeId])
+  @@index([disasterId])
+}
+
+model AllocationRun {
+  id              String           @id @default(uuid())
+  disasterId      String
+  version         Int
+  algorithm       String
+  status          AllocationStatus @default(UNKNOWN)
+  objectiveValue  Float?
+  executionTimeMs Int?
+  createdAt       DateTime         @default(now())
+
+  disaster        Disaster         @relation(fields: [disasterId], references: [id])
+  allocations     AllocationLine[]
+
+  @@unique([disasterId, version])
+}
+
+model AllocationLine {
+  id              String        @id @default(uuid())
+  allocationRunId String
+  warehouseId     String
+  shelterId       String
+  resourceId      String
+  allocatedQuantity Int
+  routeDistanceKm Float?
+  reasonCode      String?
+
+  allocationRun   AllocationRun @relation(fields: [allocationRunId], references: [id])
+  warehouse       Warehouse     @relation(fields: [warehouseId], references: [id])
+  shelter         Shelter       @relation(fields: [shelterId], references: [id])
+  resource        Resource      @relation(fields: [resourceId], references: [id])
+
+  @@index([allocationRunId])
+}
