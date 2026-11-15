@@ -15,8 +15,8 @@
 - [x] Shelter CRUD (POST /api/disasters/:disasterId/shelters, GET/GET/PATCH/DELETE /api/shelters, Zod validation with lat/lon bounds, pagination, disasterId filter, 404 DISASTER_NOT_FOUND parent check, 409 FK conflict handling; tested against Neon, temp records cleaned up)
 - [x] Warehouse CRUD (POST /api/disasters/:disasterId/warehouses, GET/GET/PATCH/DELETE /api/warehouses, Zod validation with lat/lon bounds, pagination, disasterId filter, 404 DISASTER_NOT_FOUND parent check, 409 FK conflict handling; fixed shelter+warehouse FK detection for Neon 23001 RESTRICT violations; tested against Neon, temp records cleaned up)
 - [x] Resource management (GET/POST/GET/PATCH/DELETE /api/resources, shared validation factories (common.validation.js) and db-errors helpers, 409 NAME_CONFLICT on P2002 create+update, 409 FK conflict on delete, update schema without default to avoid resetting weightPerUnit; tested against Neon, temp records cleaned up)
-- [ ] Inventory management
-- [ ] Shelter demand management
+- [x] Inventory management (POST /api/warehouses/:warehouseId/inventory, GET/GET/PATCH/DELETE /api/inventory, warehouse+resource existence checks, warehouseId/resourceId filters, 409 INVENTORY_EXISTS on @@unique(warehouseId,resourceId), non-negative quantity validation via shared validation factories and db-errors helpers; tested against Neon, temp records cleaned up)
+- [x] Shelter demand management (POST /api/shelters/:shelterId/demands, GET/GET/PATCH/DELETE /api/demands, shelter+resource existence checks, shelterId/resourceId filters, requiredQuantity positive int (zero rejected), currentStock non-negative, 409 DEMAND_EXISTS on @@unique(shelterId,resourceId), demand accepted regardless of available inventory (shortage left to optimisation); tested against Neon, temp records cleaned up)
 - [ ] Seed demonstration scenario
 
 ## Phase 3 - Algorithms

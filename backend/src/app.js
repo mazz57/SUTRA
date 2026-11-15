@@ -6,6 +6,8 @@ const disasterRoutes = require("./routes/disaster.routes");
 const shelterRoutes = require("./routes/shelter.routes");
 const warehouseRoutes = require("./routes/warehouse.routes");
 const resourceRoutes = require("./routes/resource.routes");
+const inventoryRoutes = require("./routes/inventory.routes");
+const demandRoutes = require("./routes/demand.routes");
 const { notFoundHandler, errorHandler } = require("./middleware/error.middleware");
 
 const app = express();
@@ -18,6 +20,8 @@ app.use("/api/disasters", disasterRoutes);
 app.use("/api/shelters", shelterRoutes);
 app.use("/api/warehouses", warehouseRoutes);
 app.use("/api/resources", resourceRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/demands", demandRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
