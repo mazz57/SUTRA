@@ -12,9 +12,9 @@
 
 ## Phase 2 - Core Data
 - [x] Disaster CRUD (routes -> controller -> service -> Prisma, Zod validation, pagination, status filter, 404/400/409 handling)
-- [ ] Shelter CRUD
-- [ ] Warehouse CRUD
-- [ ] Resource management
+- [x] Shelter CRUD (POST /api/disasters/:disasterId/shelters, GET/GET/PATCH/DELETE /api/shelters, Zod validation with lat/lon bounds, pagination, disasterId filter, 404 DISASTER_NOT_FOUND parent check, 409 FK conflict handling; tested against Neon, temp records cleaned up)
+- [x] Warehouse CRUD (POST /api/disasters/:disasterId/warehouses, GET/GET/PATCH/DELETE /api/warehouses, Zod validation with lat/lon bounds, pagination, disasterId filter, 404 DISASTER_NOT_FOUND parent check, 409 FK conflict handling; fixed shelter+warehouse FK detection for Neon 23001 RESTRICT violations; tested against Neon, temp records cleaned up)
+- [x] Resource management (GET/POST/GET/PATCH/DELETE /api/resources, shared validation factories (common.validation.js) and db-errors helpers, 409 NAME_CONFLICT on P2002 create+update, 409 FK conflict on delete, update schema without default to avoid resetting weightPerUnit; tested against Neon, temp records cleaned up)
 - [ ] Inventory management
 - [ ] Shelter demand management
 - [ ] Seed demonstration scenario
